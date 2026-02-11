@@ -27,12 +27,14 @@ Then open `http://localhost:8000`.
 
 ## Documentation
 
+- `PROJECT_CONTEXT.md`: high-level project snapshot and priorities.
 - `docs/README.md`: docs index by audience.
 - `docs/human/requirements-and-features.md`: product scope and behavior.
 - `docs/human/user-guide.md`: usage walkthrough.
 - `docs/human/github-publish-checklist.md`: safe GitHub publish steps (no data/secrets).
 - `docs/ai/system-context.md`: architecture, schema, API contracts.
 - `docs/ai/evolution-playbook.md`: implementation rules for future changes.
+- `docs/ai/session-handoff.md`: cross-session handoff for AI tools.
 
 ## Notes
 
