@@ -1,0 +1,25 @@
+# Local database and SQLite artifacts
+portfolio.db
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal
+
+# Python cache
+.pycache/
+__pycache__/
+*.pyc
+
+# Local environment/secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# OS/editor junk
+.DS_Store

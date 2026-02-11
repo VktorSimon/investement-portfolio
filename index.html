@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Investment Portfolio Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <header class="hero">
+        <p class="eyebrow">Portfolio Control Center</p>
+        <h1>Investment Portfolio Tracker</h1>
+        <p class="subtitle">
+          Track invested money, current value, and benefit across deposits,
+          ETFs, funds, stocks, gold, crowdfunding, and more.
+        </p>
+        <div class="screen-nav">
+          <button type="button" class="screen-nav-btn active" data-screen-target="dashboard">
+            Dashboard
+          </button>
+          <button type="button" class="screen-nav-btn" data-screen-target="manage">
+            Manage Investments
+          </button>
+        </div>
+      </header>
+
+      <section id="screen-manage" class="app-screen">
+        <div class="grid">
+        <article class="card">
+          <h2>Add Product</h2>
+          <form id="product-form" class="form">
+            <label>
+              Product Name
+              <input
+                id="product-name"
+                name="name"
+                type="text"
+                placeholder="e.g. Vanguard S&P 500 ETF"
+                required
+              />
+            </label>
+
+            <label>
+              Extra Info (optional)
+              <input
+                id="product-extra-info"
+                name="extraInfo"
+                type="text"
+                placeholder="e.g. ISIN: IE00B3XXRP09 or Project ID: CL-2026-014"
+              />
+            </label>
+
+            <label>
+              Product Type
+              <select id="product-type" name="type">
+                <option>Bank Deposit</option>
+                <option>Remunerated Account</option>
+                <option>Investment Fund</option>
+                <option>ETF</option>
+                <option>Roboadvisor</option>
+                <option>Gold</option>
+                <option>Crowdfunding</option>
+                <option>Crowdlending</option>
+                <option>Stock</option>
+                <option>Other</option>
+              </select>
+            </label>
+
+            <label>
+              Time Horizon Label (optional)
+              <select id="product-horizon-label" name="horizonLabel">
+                <option value="">No label</option>
+                <option>Long term</option>
+                <option>Mid/Long term</option>
+                <option>Mid term</option>
+                <option>Short term</option>
+              </select>
+            </label>
+
+            <label id="custom-type-wrap" class="hidden">
+              Custom Type
+              <input
+                id="custom-type"
+                name="customType"
+                type="text"
+                placeholder="e.g. Crypto"
+              />
+            </label>
+
+            <label>
+              Invested Amount (EUR)
+              <input
+                id="product-initial-investment"
+                name="initialInvestment"
+                type="number"
+                step="0.01"
+                min="0.01"
+                required
+              />
+            </label>
+
+            <label>
+              Initial Investment Date
+              <input id="product-initial-date" name="initialDate" type="date" />
+            </label>
+
+            <label>
+              Expected Due Date (optional)
+              <input id="product-expected-due-date" name="expectedDueDate" type="date" />
+            </label>
+
+            <label>
+              Current Value (EUR)
+              <input
+                id="product-current-value"
+                name="currentValue"
+                type="number"
+                step="0.01"
+                min="0"
+                value="0"
+                required
+              />
+            </label>
+
+            <button type="submit">Add Product</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <h2>Add Investment to Existing Product</h2>
+          <form id="investment-form" class="form">
+            <label>
+              Product
+              <select id="investment-product" name="productId" required></select>
+            </label>
+
+            <label>
+              Amount (EUR)
+              <input
+                id="investment-amount"
+                name="amount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                required
+              />
+            </label>
+
+            <label>
+              Date
+              <input
+                id="investment-date"
+                name="date"
+                type="date"
+                required
+              />
+            </label>
+
+            <button type="submit">Add Investment</button>
+          </form>
+        </article>
+        </div>
+      </section>
+
+      <section id="screen-dashboard" class="dashboard app-screen active">
+        <h2>Dashboard</h2>
+        <div class="kpi-grid">
+          <div class="kpi">
+            <p>Total Invested</p>
+            <strong id="kpi-invested">€0.00</strong>
+          </div>
+          <div class="kpi">
+            <p>Total Current Value</p>
+            <strong id="kpi-current">€0.00</strong>
+          </div>
+          <div class="kpi">
+            <p>Total Benefit</p>
+            <strong id="kpi-benefit">€0.00</strong>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <article class="card">
+            <h3>Total Invested by Product</h3>
+            <div id="chart-by-product" class="chart-list"></div>
+          </article>
+
+          <article class="card">
+            <h3>Allocation by Product Type</h3>
+            <div id="chart-by-type" class="chart-list"></div>
+          </article>
+
+          <article class="card">
+            <h3>Fixed vs Variable Investments</h3>
+            <div id="chart-fixed-variable" class="split-chart"></div>
+          </article>
+
+          <article class="card">
+            <h3>Allocation by Horizon Label</h3>
+            <div id="chart-by-horizon" class="chart-list"></div>
+          </article>
+        </div>
+
+        <article class="card">
+          <h3>By Product</h3>
+          <div class="table-wrap">
+            <table class="by-product-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Type</th>
+                  <th>Invested</th>
+                  <th>Current Value</th>
+                  <th>Benefit</th>
+                  <th>Horizon</th>
+                  <th>Due Date</th>
+                  <th>Investment History</th>
+                </tr>
+              </thead>
+              <tbody id="products-body"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <div class="grid two">
+          <article class="card">
+            <h3>Grouped by Type</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Invested</th>
+                    <th>Current Value</th>
+                    <th>Benefit</th>
+                  </tr>
+                </thead>
+                <tbody id="types-body"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card">
+          <h3>Product Details</h3>
+          <div class="details-toolbar">
+            <label>
+              Select Product
+              <select id="detail-product-select"></select>
+            </label>
+          </div>
+          <div id="detail-stats" class="detail-stats"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody id="detail-investments-body"></tbody>
+            </table>
+          </div>
+        </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
