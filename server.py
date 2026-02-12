@@ -26,6 +26,7 @@ def init_db():
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 extra_info TEXT NOT NULL DEFAULT '',
+                platform TEXT NOT NULL DEFAULT '',
                 expected_due_date TEXT NOT NULL DEFAULT '',
                 horizon_label TEXT NOT NULL DEFAULT '',
                 type TEXT NOT NULL,
@@ -54,6 +55,8 @@ def ensure_products_columns(conn):
     column_names = {row["name"] for row in columns}
     if "extra_info" not in column_names:
         conn.execute("ALTER TABLE products ADD COLUMN extra_info TEXT NOT NULL DEFAULT ''")
+    if "platform" not in column_names:
+        conn.execute("ALTER TABLE products ADD COLUMN platform TEXT NOT NULL DEFAULT ''")
     if "expected_due_date" not in column_names:
         conn.execute("ALTER TABLE products ADD COLUMN expected_due_date TEXT NOT NULL DEFAULT ''")
     if "horizon_label" not in column_names:
@@ -64,7 +67,7 @@ def fetch_portfolio():
     with db_conn() as conn:
         product_rows = conn.execute(
             """
-            SELECT id, name, extra_info, expected_due_date, horizon_label, type, current_value
+            SELECT id, name, extra_info, platform, expected_due_date, horizon_label, type, current_value
             FROM products
             ORDER BY created_at ASC
             """
@@ -94,6 +97,7 @@ def fetch_portfolio():
                 "id": row["id"],
                 "name": row["name"],
                 "extraInfo": row["extra_info"] or "",
+                "platform": row["platform"] or "",
                 "expectedDueDate": row["expected_due_date"] or "",
                 "horizonLabel": row["horizon_label"] or "",
                 "type": row["type"],
@@ -136,11 +140,16 @@ class Handler(SimpleHTTPRequestHandler):
 
         if len(parts) == 4 and parts[:2] == ["api", "products"] and parts[3] == "current-value":
             return self.update_current_value(parts[2], body)
+        if len(parts) == 4 and parts[:2] == ["api", "products"] and parts[3] == "platform":
+            return self.update_platform(parts[2], body)
+        if len(parts) == 3 and parts[:2] == ["api", "products"]:
+            return self.update_product(parts[2], body)
         return self.send_error_json(HTTPStatus.NOT_FOUND, "Endpoint not found")
 
     def create_product(self, body):
         name = str(body.get("name", "")).strip()
         extra_info = str(body.get("extraInfo", "")).strip()
+        platform = str(body.get("platform", "")).strip()
         expected_due_date = str(body.get("expectedDueDate", "")).strip()
         horizon_label = str(body.get("horizonLabel", "")).strip()
         kind = str(body.get("type", "")).strip()
@@ -152,10 +161,10 @@ class Handler(SimpleHTTPRequestHandler):
         with db_conn() as conn:
             conn.execute(
                 """
-                INSERT INTO products (id, name, extra_info, expected_due_date, horizon_label, type, current_value)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO products (id, name, extra_info, platform, expected_due_date, horizon_label, type, current_value)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (product_id, name, extra_info, expected_due_date, horizon_label, kind, current_value),
+                (product_id, name, extra_info, platform, expected_due_date, horizon_label, kind, current_value),
             )
         return self.send_json(HTTPStatus.CREATED, {"id": product_id})
 
@@ -193,6 +202,41 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.send_error_json(HTTPStatus.NOT_FOUND, "Product not found")
         return self.send_json(HTTPStatus.OK, {"ok": True})
 
+    def update_platform(self, product_id, body):
+        platform = str(body.get("platform", "")).strip()
+        with db_conn() as conn:
+            updated = conn.execute(
+                "UPDATE products SET platform = ? WHERE id = ?",
+                (platform, product_id),
+            )
+            if updated.rowcount == 0:
+                return self.send_error_json(HTTPStatus.NOT_FOUND, "Product not found")
+        return self.send_json(HTTPStatus.OK, {"ok": True})
+
+    def update_product(self, product_id, body):
+        kind = str(body.get("type", "")).strip()
+        if not kind:
+            return self.send_error_json(HTTPStatus.BAD_REQUEST, "type is required")
+
+        extra_info = str(body.get("extraInfo", "")).strip()
+        platform = str(body.get("platform", "")).strip()
+        expected_due_date = str(body.get("expectedDueDate", "")).strip()
+        horizon_label = str(body.get("horizonLabel", "")).strip()
+        current_value = max(0.0, parse_amount(body.get("currentValue")))
+
+        with db_conn() as conn:
+            updated = conn.execute(
+                """
+                UPDATE products
+                SET type = ?, extra_info = ?, platform = ?, expected_due_date = ?, horizon_label = ?, current_value = ?
+                WHERE id = ?
+                """,
+                (kind, extra_info, platform, expected_due_date, horizon_label, current_value, product_id),
+            )
+            if updated.rowcount == 0:
+                return self.send_error_json(HTTPStatus.NOT_FOUND, "Product not found")
+        return self.send_json(HTTPStatus.OK, {"ok": True})
+
     def import_legacy(self, body):
         products = body.get("products")
         if not isinstance(products, list):
@@ -203,6 +247,7 @@ class Handler(SimpleHTTPRequestHandler):
                 product_id = str(product.get("id") or uuid.uuid4())
                 name = str(product.get("name", "")).strip()
                 extra_info = str(product.get("extraInfo", "")).strip()
+                platform = str(product.get("platform", "")).strip()
                 expected_due_date = str(product.get("expectedDueDate", "")).strip()
                 horizon_label = str(product.get("horizonLabel", "")).strip()
                 kind = str(product.get("type", "")).strip()
@@ -212,10 +257,10 @@ class Handler(SimpleHTTPRequestHandler):
 
                 conn.execute(
                     """
-                    INSERT OR IGNORE INTO products (id, name, extra_info, expected_due_date, horizon_label, type, current_value)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR IGNORE INTO products (id, name, extra_info, platform, expected_due_date, horizon_label, type, current_value)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (product_id, name, extra_info, expected_due_date, horizon_label, kind, current_value),
+                    (product_id, name, extra_info, platform, expected_due_date, horizon_label, kind, current_value),
                 )
 
                 investments = product.get("investments", [])

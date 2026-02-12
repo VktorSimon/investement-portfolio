@@ -11,12 +11,13 @@ Track multiple investment products and operations, then analyze allocation and p
   - name, type, invested amount, current value
 - Optional product fields:
   - extra info (e.g., ISIN/project ID)
+  - platform
   - expected due date
   - horizon label (`Long term`, `Mid/Long term`, `Mid term`, `Short term`)
 - Multiple investment operations per product (amount + date)
 - Dashboard:
   - KPIs, product table, grouped-by-type table
-  - product details panel
+  - product details tab
   - charts (by product, by type, fixed vs variable pie, horizon pie)
 
 ## Architecture

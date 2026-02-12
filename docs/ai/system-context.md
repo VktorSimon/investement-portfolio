@@ -16,6 +16,7 @@
 - `id` TEXT PK
 - `name` TEXT NOT NULL
 - `extra_info` TEXT NOT NULL DEFAULT ''
+- `platform` TEXT NOT NULL DEFAULT ''
 - `expected_due_date` TEXT NOT NULL DEFAULT ''
 - `horizon_label` TEXT NOT NULL DEFAULT ''
 - `type` TEXT NOT NULL
@@ -35,9 +36,11 @@ Schema migration is handled in `init_db()` via `ensure_products_columns(...)`.
 - `GET /api/portfolio` -> `{ products: Product[] }`
 - `POST /api/products` body:
   - `name`, `type`, `currentValue`
-  - optional: `extraInfo`, `expectedDueDate`, `horizonLabel`
+  - optional: `extraInfo`, `platform`, `expectedDueDate`, `horizonLabel`
 - `POST /api/products/{id}/investments` body: `amount`, `date`
 - `PATCH /api/products/{id}/current-value` body: `currentValue`
+- `PATCH /api/products/{id}/platform` body: `platform`
+- `PATCH /api/products/{id}` body: `type`, `extraInfo`, `platform`, `expectedDueDate`, `horizonLabel`, `currentValue`
 - `POST /api/import` (legacy migration payload)
 
 ## Frontend Notes

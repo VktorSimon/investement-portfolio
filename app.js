@@ -9,23 +9,47 @@ const investmentProductSelect = document.getElementById("investment-product");
 const detailProductSelect = document.getElementById("detail-product-select");
 const productsBody = document.getElementById("products-body");
 const typesBody = document.getElementById("types-body");
+const detailForm = document.getElementById("detail-form");
 const detailStats = document.getElementById("detail-stats");
 const detailInvestmentsBody = document.getElementById("detail-investments-body");
+const detailNameInput = document.getElementById("detail-name");
+const detailTypeSelect = document.getElementById("detail-type");
+const detailCustomTypeWrap = document.getElementById("detail-custom-type-wrap");
+const detailCustomTypeInput = document.getElementById("detail-custom-type");
+const detailExtraInfoInput = document.getElementById("detail-extra-info");
+const detailPlatformInput = document.getElementById("detail-platform");
+const detailHorizonSelect = document.getElementById("detail-horizon-label");
+const detailExpectedDueDateInput = document.getElementById("detail-expected-due-date");
+const detailCurrentValueInput = document.getElementById("detail-current-value");
 const kpiInvested = document.getElementById("kpi-invested");
 const kpiCurrent = document.getElementById("kpi-current");
 const kpiBenefit = document.getElementById("kpi-benefit");
 const chartByProduct = document.getElementById("chart-by-product");
 const chartByType = document.getElementById("chart-by-type");
+const chartByPlatform = document.getElementById("chart-by-platform");
 const chartFixedVariable = document.getElementById("chart-fixed-variable");
 const chartByHorizon = document.getElementById("chart-by-horizon");
 const screenNavButtons = document.querySelectorAll(".screen-nav-btn");
 const screenManage = document.getElementById("screen-manage");
 const screenDashboard = document.getElementById("screen-dashboard");
+const screenDetails = document.getElementById("screen-details");
 const defaultDate = document.getElementById("investment-date");
 
 const state = { products: [] };
 let selectedDetailProductId = "";
 const FIXED_PRODUCT_TYPES = new Set(["Bank Deposit", "Remunerated Account"]);
+const PRODUCT_TYPE_OPTIONS = [
+  "Bank Deposit",
+  "Remunerated Account",
+  "Investment Fund",
+  "ETF",
+  "Roboadvisor",
+  "Gold",
+  "Crowdfunding",
+  "Crowdlending",
+  "Stock",
+  "Other",
+];
 
 defaultDate.valueAsDate = new Date();
 
@@ -40,6 +64,7 @@ productForm.addEventListener("submit", async (event) => {
   const formData = new FormData(productForm);
   const name = String(formData.get("name")).trim();
   const extraInfo = String(formData.get("extraInfo") || "").trim();
+  const platform = String(formData.get("platform") || "").trim();
   const chosenType = String(formData.get("type"));
   const customType = String(formData.get("customType") || "").trim();
   const type = chosenType === "Other" ? customType : chosenType;
@@ -56,6 +81,7 @@ productForm.addEventListener("submit", async (event) => {
   const payload = {
     name,
     extraInfo,
+    platform,
     expectedDueDate,
     horizonLabel,
     type,
@@ -115,27 +141,38 @@ investmentForm.addEventListener("submit", async (event) => {
   }
 });
 
-productsBody.addEventListener("change", async (event) => {
-  const target = event.target;
-  if (!(target instanceof HTMLInputElement)) {
+detailTypeSelect.addEventListener("change", () => {
+  const isOther = detailTypeSelect.value === "Other";
+  detailCustomTypeWrap.classList.toggle("hidden", !isOther);
+  detailCustomTypeInput.required = isOther;
+});
+
+detailForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!selectedDetailProductId) {
     return;
   }
 
-  if (!target.classList.contains("current-value-input")) {
-    return;
-  }
+  const chosenType = String(detailTypeSelect.value || "");
+  const customType = String(detailCustomTypeInput.value || "").trim();
+  const type = chosenType === "Other" ? customType : chosenType;
+  const payload = {
+    type,
+    extraInfo: String(detailExtraInfoInput.value || "").trim(),
+    platform: String(detailPlatformInput.value || "").trim(),
+    horizonLabel: String(detailHorizonSelect.value || "").trim(),
+    expectedDueDate: String(detailExpectedDueDateInput.value || "").trim(),
+    currentValue: Math.max(0, parseCurrency(detailCurrentValueInput.value)),
+  };
 
-  const productId = target.dataset.productId;
-  if (!productId) {
+  if (!payload.type) {
     return;
   }
 
   try {
-    await apiRequest(`/api/products/${productId}/current-value`, {
+    await apiRequest(`/api/products/${selectedDetailProductId}`, {
       method: "PATCH",
-      body: {
-        currentValue: Math.max(0, parseCurrency(target.value)),
-      },
+      body: payload,
     });
     await loadFromServer();
     render();
@@ -152,7 +189,7 @@ detailProductSelect.addEventListener("change", () => {
 screenNavButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const target = button.dataset.screenTarget;
-    activateScreen(target === "dashboard" ? "dashboard" : "manage");
+    activateScreen(target);
   });
 });
 
@@ -166,9 +203,9 @@ function render() {
 }
 
 function activateScreen(screen) {
-  const showDashboard = screen === "dashboard";
-  screenManage.classList.toggle("active", !showDashboard);
-  screenDashboard.classList.toggle("active", showDashboard);
+  screenManage.classList.toggle("active", screen === "manage");
+  screenDashboard.classList.toggle("active", screen === "dashboard");
+  screenDetails.classList.toggle("active", screen === "details");
   screenNavButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.screenTarget === screen);
   });
@@ -213,21 +250,12 @@ function renderProductsTable() {
         ${infoHtml}
       </td>
       <td>${escapeHTML(product.type)}</td>
+      <td>${product.platform ? escapeHTML(product.platform) : '<span class="muted">-</span>'}</td>
       <td>${formatMoney(invested)}</td>
-      <td>
-        <input
-          class="current-value-input"
-          data-product-id="${product.id}"
-          type="number"
-          min="0"
-          step="0.01"
-          value="${product.currentValue.toFixed(2)}"
-        />
-      </td>
+      <td>${formatMoney(product.currentValue)}</td>
       <td class="${benefit >= 0 ? "positive" : "negative"}">${formatMoney(benefit)}</td>
       <td>${product.horizonLabel ? escapeHTML(product.horizonLabel) : '<span class="muted">-</span>'}</td>
       <td>${dueLabel}</td>
-      <td>${renderInvestmentHistory(product.investments)}</td>
     `;
     productsBody.appendChild(row);
   });
@@ -286,6 +314,25 @@ function renderProductDetails() {
     return;
   }
 
+  detailNameInput.value = product.name;
+  detailExtraInfoInput.value = product.extraInfo || "";
+  detailPlatformInput.value = product.platform || "";
+  detailHorizonSelect.value = product.horizonLabel || "";
+  detailExpectedDueDateInput.value = product.expectedDueDate || "";
+  detailCurrentValueInput.value = product.currentValue.toFixed(2);
+
+  if (PRODUCT_TYPE_OPTIONS.includes(product.type) && product.type !== "Other") {
+    detailTypeSelect.value = product.type;
+    detailCustomTypeInput.value = "";
+    detailCustomTypeWrap.classList.add("hidden");
+    detailCustomTypeInput.required = false;
+  } else {
+    detailTypeSelect.value = "Other";
+    detailCustomTypeInput.value = product.type || "";
+    detailCustomTypeWrap.classList.remove("hidden");
+    detailCustomTypeInput.required = true;
+  }
+
   const investments = [...product.investments].sort((a, b) =>
     String(b.date).localeCompare(String(a.date))
   );
@@ -297,9 +344,10 @@ function renderProductDetails() {
   const lastDate = operations > 0 ? maxDate(investments) : null;
 
   detailStats.innerHTML = `
-    <div class="stat-pill"><span>Product Info</span><strong>${product.extraInfo ? escapeHTML(product.extraInfo) : "-"}</strong></div>
+    <div class="stat-pill"><span>Product Type</span><strong>${escapeHTML(product.type)}</strong></div>
     <div class="stat-pill"><span>Horizon Label</span><strong>${product.horizonLabel ? escapeHTML(product.horizonLabel) : "-"}</strong></div>
     <div class="stat-pill"><span>Expected Due Date</span><strong>${formatDueStatus(product.expectedDueDate)}</strong></div>
+    <div class="stat-pill"><span>Current Value</span><strong>${formatMoney(product.currentValue)}</strong></div>
     <div class="stat-pill"><span>Operations</span><strong>${operations}</strong></div>
     <div class="stat-pill"><span>Total Invested</span><strong>${formatMoney(invested)}</strong></div>
     <div class="stat-pill"><span>Average Operation</span><strong>${formatMoney(averageAmount)}</strong></div>
@@ -346,6 +394,7 @@ function renderKpis() {
 function renderCharts() {
   renderChartByProduct();
   renderChartByType();
+  renderChartByPlatform();
   renderChartFixedVsVariable();
   renderChartByHorizon();
 }
@@ -424,6 +473,43 @@ function renderChartByType() {
       `;
     })
     .join("");
+}
+
+function renderChartByPlatform() {
+  if (!chartByPlatform) {
+    return;
+  }
+
+  if (!state.products.length) {
+    chartByPlatform.innerHTML = '<p class="muted">No data to chart.</p>';
+    return;
+  }
+
+  const byPlatform = new Map();
+  state.products.forEach((product) => {
+    const label = product.platform ? product.platform : "Unlabeled";
+    const invested = totalInvested(product);
+    byPlatform.set(label, (byPlatform.get(label) || 0) + invested);
+  });
+
+  const rows = [...byPlatform.entries()]
+    .map(([label, amount]) => ({ label, amount }))
+    .filter((item) => item.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+  const total = rows.reduce((sum, row) => sum + row.amount, 0);
+
+  if (total <= 0) {
+    chartByPlatform.innerHTML = '<p class="muted">No invested amount yet.</p>';
+    return;
+  }
+
+  const colors = ["#1f7a74", "#2b8f8a", "#4da5a0", "#77bdb8", "#a3d6d2"];
+  const segments = rows.map((row, index) => ({
+    label: row.label,
+    amount: row.amount,
+    color: colors[index % colors.length],
+  }));
+  renderPieChart(chartByPlatform, segments);
 }
 
 function renderChartFixedVsVariable() {

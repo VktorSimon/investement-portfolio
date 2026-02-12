@@ -9,12 +9,14 @@ Open `http://localhost:8000`.
 ## Screen Overview
 - `Dashboard` (default): analysis, charts, grouped views, product details.
 - `Manage Investments`: add products and add additional investments.
+- `Product Details`: edit product fields and review investment history.
 
 ## Add a Product
 1. Go to `Manage Investments`.
 2. Fill required fields: product name, product type, invested amount, current value.
 3. Optionally add:
    - extra info (`ISIN`, project ID, etc.),
+   - platform,
    - expected due date,
    - horizon label,
    - initial investment date.
@@ -30,6 +32,13 @@ Open `http://localhost:8000`.
 - `Grouped by Type`: aggregate invested/current/benefit by product type.
 - `Product Details`: deep view for one selected product.
 - Charts show allocations and composition across products, types, fixed/variable split, and horizon labels.
+- Platform allocation is shown as a pie chart in the dashboard.
+
+## Edit a Product
+1. Go to `Product Details`.
+2. Select a product.
+3. Update type, extra info, platform, expected due date, horizon label, or current value.
+4. Save changes.
 
 ## Data Persistence
 - Data is stored in local SQLite DB `portfolio.db`.

@@ -28,6 +28,9 @@
           <button type="button" class="screen-nav-btn" data-screen-target="manage">
             Manage Investments
           </button>
+          <button type="button" class="screen-nav-btn" data-screen-target="details">
+            Product Details
+          </button>
         </div>
       </header>
 
@@ -54,6 +57,16 @@
                 name="extraInfo"
                 type="text"
                 placeholder="e.g. ISIN: IE00B3XXRP09 or Project ID: CL-2026-014"
+              />
+            </label>
+
+            <label>
+              Platform (optional)
+              <input
+                id="product-platform"
+                name="platform"
+                type="text"
+                placeholder="e.g. Vanguard, Degiro, Coinbase"
               />
             </label>
 
@@ -198,6 +211,11 @@
           </article>
 
           <article class="card">
+            <h3>Allocation by Platform</h3>
+            <div id="chart-by-platform" class="chart-list"></div>
+          </article>
+
+          <article class="card">
             <h3>Fixed vs Variable Investments</h3>
             <div id="chart-fixed-variable" class="split-chart"></div>
           </article>
@@ -216,12 +234,12 @@
                 <tr>
                   <th>Product</th>
                   <th>Type</th>
+                  <th>Platform</th>
                   <th>Invested</th>
                   <th>Current Value</th>
                   <th>Benefit</th>
                   <th>Horizon</th>
                   <th>Due Date</th>
-                  <th>Investment History</th>
                 </tr>
               </thead>
               <tbody id="products-body"></tbody>
@@ -246,16 +264,103 @@
               </table>
             </div>
           </article>
+        </div>
+      </section>
+
+      <section id="screen-details" class="app-screen">
+        <h2>Product Details</h2>
+        <div class="details-toolbar">
+          <label>
+            Select Product
+            <select id="detail-product-select"></select>
+          </label>
+        </div>
+
+        <div class="grid two">
+          <article class="card">
+            <h3>Edit Product</h3>
+            <form id="detail-form" class="form">
+              <label>
+                Product Name
+                <input id="detail-name" type="text" disabled />
+              </label>
+
+              <label>
+                Product Type
+                <select id="detail-type" name="type">
+                  <option>Bank Deposit</option>
+                  <option>Remunerated Account</option>
+                  <option>Investment Fund</option>
+                  <option>ETF</option>
+                  <option>Roboadvisor</option>
+                  <option>Gold</option>
+                  <option>Crowdfunding</option>
+                  <option>Crowdlending</option>
+                  <option>Stock</option>
+                  <option>Other</option>
+                </select>
+              </label>
+
+              <label id="detail-custom-type-wrap" class="hidden">
+                Custom Type
+                <input
+                  id="detail-custom-type"
+                  name="customType"
+                  type="text"
+                  placeholder="e.g. Crypto"
+                />
+              </label>
+
+              <label>
+                Extra Info (optional)
+                <input id="detail-extra-info" name="extraInfo" type="text" />
+              </label>
+
+              <label>
+                Platform (optional)
+                <input id="detail-platform" name="platform" type="text" />
+              </label>
+
+              <label>
+                Time Horizon Label (optional)
+                <select id="detail-horizon-label" name="horizonLabel">
+                  <option value="">No label</option>
+                  <option>Long term</option>
+                  <option>Mid/Long term</option>
+                  <option>Mid term</option>
+                  <option>Short term</option>
+                </select>
+              </label>
+
+              <label>
+                Expected Due Date (optional)
+                <input id="detail-expected-due-date" name="expectedDueDate" type="date" />
+              </label>
+
+              <label>
+                Current Value (EUR)
+                <input
+                  id="detail-current-value"
+                  name="currentValue"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                />
+              </label>
+
+              <button type="submit">Save Changes</button>
+            </form>
+          </article>
 
           <article class="card">
-          <h3>Product Details</h3>
-          <div class="details-toolbar">
-            <label>
-              Select Product
-              <select id="detail-product-select"></select>
-            </label>
-          </div>
-          <div id="detail-stats" class="detail-stats"></div>
+            <h3>Stats</h3>
+            <div id="detail-stats" class="detail-stats"></div>
+          </article>
+        </div>
+
+        <article class="card">
+          <h3>Investment History</h3>
           <div class="table-wrap">
             <table>
               <thead>
@@ -268,10 +373,9 @@
             </table>
           </div>
         </article>
-        </div>
       </section>
     </main>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=platform"></script>
   </body>
 </html>

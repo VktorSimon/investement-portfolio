@@ -446,6 +446,18 @@ td.negative {
   word-break: break-word;
 }
 
+.stat-pill input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.95rem;
+}
+
+#detail-name:disabled {
+  color: var(--muted);
+}
+
 .hidden {
   display: none;
 }

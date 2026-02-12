@@ -16,6 +16,7 @@ Provide a simple portfolio tracker where users can:
   - current value.
 - Product creation supports optional fields:
   - extra info (e.g., ISIN, project identifier),
+  - platform,
   - expected due date,
   - time horizon label (`Long term`, `Mid/Long term`, `Mid term`, `Short term`),
   - initial investment date.
@@ -28,14 +29,18 @@ Provide a simple portfolio tracker where users can:
   - total current value,
   - total benefit.
 - Tables:
-  - By Product (includes horizon, due date status, and investment history),
+  - By Product (includes horizon and due date status),
   - Grouped by Type,
-  - Product Details (operations, average operation, weighted average buy date, first/last investment).
+  - Product Details screen (operations, average operation, weighted average buy date, first/last investment).
 - Charts:
   - total invested by product (bar),
   - allocation by product type (bar),
+  - allocation by platform (pie),
   - fixed vs variable investments (pie),
   - allocation by horizon label (pie).
+
+## Product Editing
+- Editable fields (from Product Details screen): type, extra info, platform, expected due date, horizon label, current value.
 
 ## Classification Rules
 - Fixed investments: `Bank Deposit`, `Remunerated Account`.
